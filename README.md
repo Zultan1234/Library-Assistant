@@ -2,6 +2,9 @@
 
 This project has exactly three MCP tools: `search_books` (Data), `reserve_book` (Action), and `find_and_reserve` (Orchestration). The server uses FastMCP; the agent uses the **OpenAI Agents SDK** with a **Gemini** model. The catalog is a local JSON file, not a real campus system.
 
+Here is the youtube link to the demo:
+https://youtu.be/700VUxdTTMc
+
 ## Recommended: Google Colab with dashboard
 
 1. Extract this ZIP on your computer. Open https://colab.research.google.com/ and upload `C5_MCP_Dashboard_Colab.ipynb` from the extracted folder.

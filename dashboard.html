@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campus Library — Live MCP Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6fa; --card: #fff; --ink: #172236; --muted: #69758a;
+      --line: #e4e9f1; --blue: #315de6; --blue-pale: #eef2ff;
+      --green: #117b5c; --green-pale: #e7f7ef;
+      --rose: #b84757; --rose-pale: #fff0f2; --shadow: 0 5px 22px rgba(32, 52, 91, .055);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #a9baf9; outline-offset: 2px; }
+    .page { max-width: 1690px; margin: auto; padding: 25px 26px 40px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 3px 0 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { background: #263d87; color: white; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; font-weight: 800; font-size: 22px; letter-spacing: -.09em; }
+    .brand h1 { font-size: 21px; line-height: 1.2; margin: 0 0 3px; letter-spacing: -.45px; }
+    .brand p { margin: 0; color: var(--muted); font-size: 12.5px; }
+    .top-tag { display: inline-flex; align-items: center; gap: 7px; background: white; padding: 9px 13px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; font-weight: 700; color: #3e4a65; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ab682; display: inline-block; box-shadow: 0 0 0 3px #e2f8ee; }
+    .intro { margin: 0 0 20px; }
+    .intro h2 { font-size: clamp(22px, 2.1vw, 29px); margin: 0 0 6px; letter-spacing: -.9px; }
+    .intro p { color: var(--muted); font-size: 14px; margin: 0; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .stat { background: white; border: 1px solid var(--line); border-radius: 15px; padding: 17px 20px; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; min-height: 97px; }
+    .stat label { font-size: 12px; color: var(--muted); font-weight: 650; }
+    .stat strong { display: block; margin-top: 5px; font-size: 29px; letter-spacing: -1px; line-height: 1; }
+    .stat-icon { display: grid; place-items: center; height: 46px; width: 46px; border-radius: 13px; font-size: 21px; background: var(--blue-pale); color: var(--blue); }
+    .stat-icon.green { background: var(--green-pale); color: var(--green); }
+    .stat-icon.rose { background: var(--rose-pale); color: var(--rose); }
+    .workspace { display: grid; grid-template-columns: minmax(360px, 1.14fr) minmax(360px, 1fr) minmax(250px, .72fr); gap: 15px; align-items: stretch; }
+    .panel { min-width: 0; height: min(680px, calc(100vh - 273px)); min-height: 490px; background: white; border: 1px solid var(--line); border-radius: 17px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+    .panel-head { padding: 18px 18px 16px; border-bottom: 1px solid var(--line); }
+    .panel-head h3 { font-size: 16px; margin: 0 0 5px; letter-spacing: -.25px; }
+    .panel-head p { margin: 0; font-size: 12px; line-height: 1.4; color: var(--muted); }
+    .shelf-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 13px 17px; border-bottom: 1px solid var(--line); }
+    .search { border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; flex: 1 1 125px; min-width: 100px; width: 100%; background: #fcfdff; font-size: 12px; color: var(--ink); }
+    .filters { display: flex; gap: 4px; background: #f1f4f8; padding: 3px; border-radius: 9px; }
+    .filter { border: 0; background: transparent; border-radius: 7px; font-size: 11px; color: #5a6780; font-weight: 700; padding: 7px 9px; }
+    .filter.active { background: white; color: var(--blue); box-shadow: 0 1px 4px rgba(20,40,80,.11); }
+    .books-list { overflow-y: auto; padding: 14px 15px 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 11px; flex: 1; }
+    .book { padding: 14px 13px; border: 1px solid var(--line); border-radius: 12px; background: #fff; display: flex; flex-direction: column; gap: 7px; min-width: 0; min-height: 166px; transition: border-color .15s, background .15s; }
+    .book:hover { border-color: #b8c7e8; }
+    .book.reserved { background: #fcfcfd; }
+    .book-top { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .book-id { font-size: 10.5px; letter-spacing: .45px; font-weight: 800; color: #738096; }
+    .pill { font-size: 10px; padding: 4px 7px; font-weight: 700; border-radius: 100px; white-space: nowrap; }
+    .pill.available { background: var(--green-pale); color: var(--green); }
+    .pill.unavailable { background: var(--rose-pale); color: var(--rose); }
+    .book-name { font-weight: 750; line-height: 1.28; font-size: 13px; letter-spacing: -.2px; }
+    .author { font-size: 11.5px; line-height: 1.3; color: var(--muted); }
+    .book-bottom { margin-top: auto; font-size: 11px; color: #66748a; }
+    .book-bottom em { font-style: normal; font-weight: 650; color: var(--rose); }
+    .book-action { color: var(--blue); font-size: 11px; font-weight: 750; border: none; background: var(--blue-pale); border-radius: 7px; padding: 8px; margin-top: 5px; }
+    .book-action:hover { background: #dfe8ff; }
+    .chat-panel .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .mini-tag { font-size: 10px; white-space: nowrap; background: #eaf2ff; color: #305dbd; border-radius: 99px; padding: 6px 9px; font-weight: 700; }
+    .chat-scroller { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 15px; background: linear-gradient(180deg,#fbfcff 0,#fff 70%); }
+    .message { display: flex; flex-direction: column; gap: 5px; max-width: 92%; }
+    .message.user { align-self: flex-end; align-items: flex-end; }
+    .message.assistant { align-self: flex-start; align-items: flex-start; }
+    .who { font-size: 10px; color: #778399; font-weight: 800; letter-spacing: .35px; text-transform: uppercase; padding: 0 4px; }
+    .bubble { font-size: 13px; line-height: 1.62; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px 14px; border-radius: 13px; background: #f0f3f8; color: #28334a; }
+    .message.user .bubble { background: #315de6; color: white; border-bottom-right-radius: 4px; }
+    .message.assistant .bubble { border-bottom-left-radius: 4px; }
+    .bubble strong { font-weight: 800; }
+    .quick-prompts { padding: 9px 14px 5px; display: flex; gap: 6px; flex-wrap: wrap; border-top: 1px solid var(--line); }
+    .quick { background: #f2f5fb; color: #415476; padding: 7px 9px; border-radius: 99px; border: 1px solid #e8ecf4; font-size: 10.5px; font-weight: 650; }
+    .quick:hover { background: #e7edfc; }
+    .quick:disabled { opacity: .45; cursor: not-allowed; }
+    .composer { display: flex; gap: 8px; padding: 11px 13px 14px; }
+    .composer textarea { border: 1px solid #dfe5ee; background: #fbfcff; resize: none; min-height: 46px; max-height: 104px; border-radius: 11px; padding: 12px 11px; outline: none; flex: 1; font-size: 12.5px; line-height: 1.5; }
+    .send { background: var(--blue); color: #fff; border: none; border-radius: 11px; padding: 10px 17px; font-weight: 750; font-size: 12px; }
+    .send:hover { background: #234ed8; }
+    .send:disabled { opacity: .5; cursor: wait; }
+    .tool-scroller { flex: 1; overflow-y: auto; padding: 15px; }
+    .timeline-item { position: relative; border-left: 2px solid #dce5f5; padding: 1px 0 18px 17px; margin-left: 7px; }
+    .timeline-item::before { content: ''; position: absolute; left: -6px; top: 4px; background: #5b80e9; border: 2px solid #fff; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 2px #dce5f5; }
+    .timeline-head { display: flex; gap: 7px; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .tool-name { color: #294cb9; background: var(--blue-pale); border-radius: 7px; padding: 5px 8px; font-size: 11px; font-weight: 800; overflow-wrap: anywhere; }
+    .time { color: #8793a5; font-size: 10px; }
+    .tool-desc { color: #5b677d; font-size: 11px; line-height: 1.5; margin: 0 0 8px; }
+    .tool-result { border: 1px solid #edf0f5; background: #f8fafc; border-radius: 9px; padding: 9px 10px; }
+    .tool-result summary { font-size: 10.5px; font-weight: 800; color: #526278; cursor: pointer; }
+    .tool-result pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10px; color: #445169; line-height: 1.5; margin: 9px 0 0; }
+    .empty { color: #8490a3; line-height: 1.7; font-size: 12px; padding: 18px; text-align: center; align-self: center; }
+    .activity-tip { background: #f9fbff; border-top: 1px solid var(--line); color: #75839b; padding: 12px 16px; font-size: 11px; line-height: 1.6; }
+    footer { color: #8792a5; font-size: 11px; margin-top: 15px; text-align: right; }
+    @media (max-width: 1170px) { .workspace { grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr); } .panel.tool-panel { grid-column: 1/-1; height: 300px; min-height: 300px; } }
+    @media (max-width: 760px) { .page { padding: 17px 12px 28px; } header { align-items: flex-start; } .top-tag { font-size: 10px; } .stats { gap: 8px; } .stat { padding: 13px 11px; min-height: 75px; } .stat strong { font-size: 23px; } .stat-icon { display: none; } .workspace { grid-template-columns: 1fr; } .panel { height: 530px; min-height: 0; } .panel.tool-panel { grid-column: auto; } .books-list { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 390px) { .books-list { grid-template-columns: 1fr; } .top-tag { display: none; } }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">L.</div>
+      <div><h1>Campus Library</h1><p>Agent-assisted catalog &amp; reservations</p></div>
+    </div>
+    <div class="top-tag"><span class="dot"></span> MCP demonstration · Local</div>
+  </header>
+
+  <section class="intro">
+    <h2>Library overview</h2>
+    <p>Live reservation status, a virtual librarian, and the tools used behind each answer.</p>
+  </section>
+
+  <section class="stats" aria-label="Library status">
+    <div class="stat"><div><label>Total books</label><strong id="totalCount">—</strong></div><div class="stat-icon">▤</div></div>
+    <div class="stat"><div><label>Available</label><strong id="availableCount">—</strong></div><div class="stat-icon green">✓</div></div>
+    <div class="stat"><div><label>Reserved</label><strong id="reservedCount">—</strong></div><div class="stat-icon rose">↗</div></div>
+  </section>
+
+  <main class="workspace">
+    <section class="panel" aria-label="Book catalog">
+      <div class="panel-head"><h3>Book catalog</h3><p>Availability updates automatically when a book is reserved.</p></div>
+      <div class="shelf-controls">
+        <input class="search" id="bookSearch" placeholder="Search books or authors…" aria-label="Search books">
+        <div class="filters" role="group" aria-label="Filter by status">
+          <button class="filter active" data-filter="all">All</button>
+          <button class="filter" data-filter="available">Available</button>
+          <button class="filter" data-filter="reserved">Reserved</button>
+        </div>
+      </div>
+      <div class="books-list" id="bookGrid"><div class="empty">Loading catalog…</div></div>
+    </section>
+
+    <section class="panel chat-panel" aria-label="Virtual librarian chat">
+      <div class="panel-head">
+        <div><h3>Virtual librarian</h3><p>Ask about books or make a reservation.</p></div>
+        <span class="mini-tag">Gemini + Agents SDK</span>
+      </div>
+      <div class="chat-scroller" id="chatMessages" aria-live="polite">
+        <div class="message assistant">
+          <div class="who">Librarian</div>
+          <div class="bubble">Hello! I can help you find a book or reserve one. What are you looking for?</div>
+        </div>
+      </div>
+      <div class="quick-prompts" id="quickPrompts">
+        <button class="quick" data-prompt="Show me Python books.">Search Python</button>
+        <button class="quick" data-prompt="Reserve book B001 for Demo Student.">Reserve B001</button>
+        <button class="quick" data-prompt="Find an algorithms book and reserve it for Demo Student.">Find + reserve</button>
+      </div>
+      <form class="composer" id="chatForm">
+        <textarea id="chatInput" rows="1" placeholder="Ask the librarian…" aria-label="Your message" required></textarea>
+        <button class="send" id="sendButton" type="submit">Send ↗</button>
+      </form>
+    </section>
+
+    <section class="panel tool-panel" aria-label="MCP tool calls">
+      <div class="panel-head"><h3>Tool activity <span id="toolCount" style="color:#8b96a8;font-size:12px;font-weight:600">(0)</span></h3><p>Actual MCP calls made by the agent in this chat.</p></div>
+      <div class="tool-scroller" id="toolActivity"><div class="empty">No tools called yet.<br>Try searching for a book in the chat.</div></div>
+      <div class="activity-tip">The server exposes exactly 3 MCP tools: <strong>search_books</strong>, <strong>reserve_book</strong>, and <strong>find_and_reserve</strong>.</div>
+    </section>
+  </main>
+  <footer>Demo catalog stored locally in data/books.json · No extra Python packages for this interface</footer>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let books = [], filter = 'all', busy = false, callsSeen = 0;
+  const toolDescriptions = {
+    search_books: 'Data · Reads catalog information',
+    reserve_book: 'Action · Saves a reservation',
+    find_and_reserve: 'Orchestration · Searches and reserves'
+  };
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  function renderBookGrid() {
+    const list = $('bookGrid'); list.replaceChildren();
+    const term = $('bookSearch').value.trim().toLowerCase();
+    const matches = books.filter(b =>
+      (filter === 'all' || (filter === 'available' ? b.available : !b.available)) &&
+      [b.id,b.title,b.author,...(b.topics || [])].join(' ').toLowerCase().includes(term)
+    );
+    if (!matches.length) { list.append(el('div','empty','No books match this filter.')); return; }
+    for (const b of matches) {
+      const card = el('article','book' + (b.available ? '' : ' reserved'));
+      const top = el('div','book-top');
+      top.append(el('span','book-id',b.id),el('span','pill ' + (b.available ? 'available' : 'unavailable'), b.available ? '● Available' : '● Reserved'));
+      card.append(top,el('div','book-name',b.title),el('div','author',b.author));
+      const bottom = el('div','book-bottom');
+      if (b.available) {
+        const button = el('button','book-action','Ask to reserve');
+        button.type = 'button';
+        button.disabled = busy;
+        button.addEventListener('click', () => { $('chatInput').value = `Reserve book ${b.id} for Demo Student.`; $('chatInput').focus(); });
+        bottom.append(button);
+      } else {
+        bottom.append(el('span','','Reserved for '));
+        bottom.append(el('em','',b.reserved_for || 'a student'));
+      }
+      card.append(bottom); list.append(card);
+    }
+  }
+  async function refreshCatalog() {
+    try {
+      const response = await fetch('/api/books',{cache:'no-store'});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Unable to read catalog');
+      books = data.books;
+      $('totalCount').textContent = books.length;
+      $('availableCount').textContent = books.filter(b => b.available).length;
+      $('reservedCount').textContent = books.filter(b => !b.available).length;
+      renderBookGrid();
+    } catch (error) {
+      if (!books.length) $('bookGrid').replaceChildren(el('div','empty','Catalog unavailable: ' + error.message));
+    }
+  }
+  function safeFormattedText(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+  }
+  function addMessage(role, text) {
+    const row = el('div','message ' + role);
+    row.append(el('div','who', role === 'user' ? 'You' : 'Librarian'));
+    const bubble = el('div','bubble');
+    bubble.innerHTML = safeFormattedText(text);
+    row.append(bubble);
+    $('chatMessages').append(row);
+    $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+    return row;
+  }
+  function addCalls(calls) {
+    const feed = $('toolActivity');
+    if (!calls.length) return;
+    if (callsSeen === 0) feed.replaceChildren();
+    for (const c of calls) {
+      callsSeen++;
+      const item = el('div','timeline-item');
+      const head = el('div','timeline-head');
+      head.append(el('span','tool-name',c.name));
+      head.append(el('span','time',new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})));
+      item.append(head,el('p','tool-desc',toolDescriptions[c.name] || 'MCP tool call'));
+      if (c.result) {
+        const d = el('details','tool-result');
+        const summary = el('summary','','Result · click to expand');
+        const pre = el('pre','',c.result);
+        d.append(summary,pre); item.append(d);
+      }
+      feed.prepend(item);
+    }
+    $('toolCount').textContent = `(${callsSeen})`;
+  }
+  function setBusy(value) {
+    busy = value;
+    $('chatInput').disabled = value;
+    $('sendButton').disabled = value;
+    $('sendButton').textContent = value ? '…' : 'Send ↗';
+    document.querySelectorAll('.quick').forEach(b => b.disabled = value);
+    renderBookGrid();
+  }
+  async function sendMessage(text) {
+    const prompt = text.trim();
+    if (!prompt || busy) return;
+    addMessage('user',prompt);
+    $('chatInput').value = '';
+    setBusy(true);
+    const loading = addMessage('assistant','Thinking…');
+    try {
+      const response = await fetch('/api/chat',{
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt})
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'The request failed.');
+      loading.remove();
+      addMessage('assistant',data.reply || '(No response)');
+      addCalls(data.calls || []);
+      await refreshCatalog();
+    } catch (error) {
+      loading.remove();
+      addMessage('assistant','Unable to complete the request: ' + error.message);
+    } finally { setBusy(false); $('chatInput').focus(); }
+  }
+  $('chatForm').addEventListener('submit',event => { event.preventDefault(); sendMessage($('chatInput').value); });
+  $('chatInput').addEventListener('keydown',event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage($('chatInput').value); } });
+  $('quickPrompts').addEventListener('click',event => { const btn=event.target.closest('[data-prompt]'); if(btn) sendMessage(btn.dataset.prompt); });
+  $('bookSearch').addEventListener('input',renderBookGrid);
+  document.querySelectorAll('.filter').forEach(button => button.addEventListener('click',() => {
+    filter = button.dataset.filter;
+    document.querySelectorAll('.filter').forEach(b => b.classList.toggle('active', b === button));
+    renderBookGrid();
+  }));
+  refreshCatalog();
+  setInterval(refreshCatalog, 3000);
+})();
+</script>
+</body>
+</html>
